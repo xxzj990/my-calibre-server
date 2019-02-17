@@ -17,12 +17,13 @@ settings = {
     "xsrf_cookies"  : False,
     "user_database" : 'sqlite:////data/books/develop.db',
 
+    # Set this if you don't need any user management
+    #"auto_login"    : 1,
+
     "SOCIAL_AUTH_LOGIN_URL"          : '/',
     "SOCIAL_AUTH_LOGIN_REDIRECT_URL" : '/done/',
     "SOCIAL_AUTH_USER_MODEL"         : 'models.Reader',
     "SOCIAL_AUTH_AUTHENTICATION_BACKENDS" : (
-        'social_core.backends.douban.DoubanOAuth',
-        'social_core.backends.douban.DoubanOAuth2',
         'social_core.backends.qq.QQOAuth2',
         'social_core.backends.weibo.WeiboOAuth2',
     ),
@@ -31,10 +32,6 @@ settings = {
     'smtp_server'                      : "smtp.talebook.org",
     'smtp_username'                    : "sender@talebook.org",
     'smtp_password'                    : "password",
-
-    # See: https://developers.douban.com/apikey/
-    'SOCIAL_AUTH_DOUBAN_OAUTH2_KEY'    : '',
-    'SOCIAL_AUTH_DOUBAN_OAUTH2_SECRET' : '',
 
     # See: http://open.weibo.com/developers
     'SOCIAL_AUTH_WEIBO_KEY'            : '',

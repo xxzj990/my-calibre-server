@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 from functools import wraps
 from collections import defaultdict
 from gettext import gettext as _
+import json
 
 import social_tornado.handlers
 
@@ -162,6 +163,19 @@ class BaseHandler(web.RequestHandler):
         namespace.update(kwargs)
         return t.render(**namespace)
 
+    def json_page(self, template, vals):
+        p = template.split(".html")[0].replace("/", ".")
+        try:
+            m = __import__("jsons."+p)
+            for pp in p.split("."):
+                m = getattr(m, pp)
+            m = reload(m)
+            self.write( m.json_output(self, vals) )
+        except Exception as e:
+            import traceback
+            logging.error(traceback.format_exc())
+            self.write( {"error": "json func error"} )
+
     def html_page(self, template, *args, **kwargs):
         db = self.db
         request = self.request
@@ -182,9 +196,28 @@ class BaseHandler(web.RequestHandler):
 
         IMG = self.static_host
         vals = dict(*args, **kwargs)
+
         vals.update( vars() )
         del vals['self']
-        self.write( self.render_string(template, **vals) )
+        if self.get_argument("fmt", 0) == "json":
+            self.json_page(template, vals)
+        else:
+            self.write( self.render_string(template, **vals) )
+
+    def get_book(self, book_id):
+        books = self.get_books(ids=[int(book_id)])
+        if not books:
+            raise web.HTTPError(404, reason = _(u"抱歉，这本书不存在") )
+        return books[0]
+
+    def is_book_owner(self, book_id, user_id):
+        auto = int(self.settings.get('auto_login', 0))
+        if auto: return True
+
+        query = self.session.query(Item)
+        query = query.filter(Item.book_id == book_id)
+        query = query.filter(Item.collector_id == user_id)
+        return (query.count() > 0)
 
     def get_books(self, *args, **kwargs):
         _ts = time.time()
